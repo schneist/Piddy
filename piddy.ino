@@ -40,7 +40,7 @@ double HeatTimeCauldron; // the variable controling the heater
 double HeatTimePreHeater; // the variable controling the heater
 
 
-void setup(){
+void setup() {
   sensors.begin();  // init temp sensor
   setupHeater();
   setupSteam();
@@ -68,11 +68,11 @@ void loop()
 
 
 boolean istTempEmergency() {
-  
-  boolean emergency = (currentTemperaturePreHeater > EMERGENCY_TEMP ||  double currentTemperatureCauldron > EMERGENCY_TEMP );
+
+  boolean emergency = ( (currentTemperaturePreHeater > EMERGENCY_TEMP )  || (  currentTemperatureCauldron > EMERGENCY_TEMP ));
   if (emergency) {
-    switchHeatElementCauldron(0);
-    switchHeatElementPreheater(0);
+    digitalWrite(PRE_HEAT_RELAY_PIN, LOW);
+    digitalWrite(CAULDRON_RELAY_PIN, LOW);
     lcd.begin(16, 2);
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -95,7 +95,9 @@ void setupSteam() {
 }
 
 void setupHeater() {
-  pinMode(HEAT_RELAY_PIN , OUTPUT);
+  pinMode(CAULDRON_RELAY_PIN , OUTPUT);
+  pinMode(PRE_HEAT_RELAY_PIN , OUTPUT);
+
 }
 
 void setupSerialInterface() {
@@ -129,9 +131,9 @@ void updatePoti() {
 
 
 void updateHeatTimePre() {
-    double diff = (TargetTemp - currentTemp) / 15.0;
-    double diffToHeat = (exp(diff) - 1) / 6;
-    HeatTimePreHeater = diffToHeat * WINDOWSIZE;
+  double diff = (TargetTemp - currentTemperaturePreHeater) / 15.0;
+  double diffToHeat = (exp(diff) - 1) / 6;
+  HeatTimePreHeater = diffToHeat * WINDOWSIZE;
 }
 
 
@@ -140,7 +142,7 @@ void switchPreHeater() {
   if ((now - windowStartTime) >= WINDOWSIZE) {
     windowStartTime = now;
   }
-  if (HeatTimePreHeat > (now - windowStartTime)) {
+  if (HeatTimePreHeater > (now - windowStartTime)) {
     digitalWrite(PRE_HEAT_RELAY_PIN, HIGH);
   } else {
     digitalWrite(PRE_HEAT_RELAY_PIN, LOW);
@@ -162,9 +164,9 @@ void switchCauldronHeater() {
 
 
 void updateHeatTimeCauldron() {
-    double diff = (TargetTemp - currentTemp) / 15.0;
-    double diffToHeat = (exp(diff) - 1) / 6;
-    HeatTimeCauldron = diffToHeat * WINDOWSIZE;
+  double diff = (TargetTemp - currentTemperatureCauldron) / 15.0;
+  double diffToHeat = (exp(diff) - 1) / 6;
+  HeatTimeCauldron = diffToHeat * WINDOWSIZE;
 }
 
 
@@ -187,9 +189,10 @@ void updateLCD() {
     lcd.print(" ");
     lcd.print(currentTemperatureCauldron, PRINT_PLACES_AFTER_DECIMAL);
     lcd.setCursor(0, 1);
-    lcd.print(HeatTime, 0);
+    lcd.print(HeatTimePreHeater, 0);
     lcd.print(" ");
-    lcd.print(currentTempDiff,PRINT_PLACES_AFTER_DECIMAL);
+    lcd.print(HeatTimeCauldron, 0);
+    lcd.print(" ");
   }
 }
 
